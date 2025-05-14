@@ -4,3 +4,7 @@ __pycache__
 flaskenv
 .coverage
 coverage.xml
+env
+.vscode
+.sonarlint
+

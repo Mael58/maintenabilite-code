@@ -19,4 +19,5 @@ def client(defapp):
 def test_request_example(client):
     response = client.get("/water")
     result = json.loads(response.data)
+    print(result)
     assert 70 == result['water']
