@@ -1,14 +1,20 @@
-from flask import Flask
+from flask import Flask,jsonify
 import json
 import datetime
 from flask_wtf import CSRFProtect
+import tempfile
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_APP')
 csrf = CSRFProtect(app)
 
 class Water():
     def __init__(self):
-        self.water = 0
+        self.quantity_drunk_l = 0
 
 def read_water():
     water = None
@@ -27,33 +33,31 @@ def read_water_by_user(user_id):
 def save_water(water):
     with open('./water.json', 'w') as f:
         f.write(json.dumps(water))
-
-
+    return water
+    
 def save_water_by_user(water, user_id):
     with open(f'./water{user_id}.json', 'w') as f:
         f.write(json.dumps(water))
+    return water
 
 # Ajoute de l'eau
 @app.route('/add_water', methods=['GET'])
 def add_water():
     water = read_water()
-    print(water)
-    water["water"] += 10
-    if not "adding" in water.keys():
-        water["adding"] = [{'added_at': str(datetime.datetime.now()), 'quantity': 10}]
-        return save_water(water)
+    added_quantity = 10
+    water["water"] += added_quantity
+    added_water = {'added_at': str(datetime.datetime.now()), 'quantity': added_quantity}
+    if  "adding" in water.keys():
+      water["adding"].append(added_water)
     else:
-        water["adding"].append({'added_at': datetime.datetime.now(), 'quantity': 10})
-        return save_water(water)
-
-import tempfile
+       water["adding"] = [added_water]
+    return save_water(water)
 
 # Get water
 @app.route('/water', methods=['GET'])
 def water():
-    filename = tempfile.TemporaryFile()
-    logfile = open(filename, 'a')
-    logfile.write(f'getting water at {datetime.datetime.now()}')
+    logfile = tempfile.TemporaryFile()
+    logfile.write(f'getting water at {datetime.datetime.now()}'.encode())
     logfile.close()
     return read_water()
   
@@ -62,7 +66,6 @@ def water():
 @app.route('/add_water/<user_id>')
 def add_water_user(user_id):
     water = read_water_by_user(user_id)
-    print(water)
     water["water"] += 10
     save_water_by_user(water, user_id)
     return water
@@ -70,13 +73,12 @@ def add_water_user(user_id):
 @app.route('/add_alert/<user_id>')
 def check_alert(user_id):
     water = read_water_by_user(user_id)
-    if water < 10:
-        return 'altert missing water'
-    else:
-        return 'everything is ok'
+    if water["water"] < 10:
+        return jsonify("alert missing water")
+    return jsonify("everything is ok")
 
-if  __name__ == '__main__':
-    print('using as import')
-else:
-    app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=os.getenv('DEBUG', False))
+
+    
 

@@ -7,4 +7,5 @@ coverage.xml
 env
 .vscode
 .sonarlint
-
+run-sonar-scanner.sh
+.env
