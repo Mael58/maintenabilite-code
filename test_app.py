@@ -3,7 +3,7 @@ import json
 import os
 
 
-from app import app, read_water,save_water, read_water_by_user, save_water_by_user
+from app import app, Water, read_water_by_user, save_water_by_user
 
 @pytest.fixture()
 def defapp():
@@ -42,32 +42,34 @@ def setup_user(request):
 
         
 def test_request_example(client, setup):
-    response = client.get("/water")
+    assert 70 == setup['water']
+    response = client.get("/status")
     result = json.loads(response.data)
     assert 'water' in result
     assert 70 == result['water']
     
 def test_request_save_exemple(client, setup):
-    response = client.get("/add_water")
+    assert 70 == setup['water']
+    response = client.get("/drink")
     result = json.loads(response.data)
     assert 'water' in result
     assert 80 == result['water']
 
 def test_read_water(setup):
-    result = read_water()
-    assert 'water' in result
-    assert 70 == result['water']
+    water =Water()
+    result = water.quantity_drunk_l
+    assert 70 == result
     
 def test_save_water(setup):
     assert 70 == setup['water']
-    water = { "water": 70 }
-    save_water(water)
-    assert 70 == water['water']
+    water = Water()     
+    water.save_water()
+    assert 70 == water.quantity_drunk_l
     
 def test_request_save_exemple_several_time(client, setup):
     assert 70 == setup['water']
     for i in range(1,10):
-        response = client.get("/add_water")
+        response = client.get("/drink")
         result = json.loads(response.data)
         assert 'water' in result, f'adding water level {i}'
         assert 70 + i*10 == result['water'], f'adding water level {i}'
