@@ -3,7 +3,7 @@ import json
 import os
 
 
-from app import app, Water, read_water_by_user, save_water_by_user
+from app import app, Water
 
 @pytest.fixture()
 def defapp():
@@ -73,14 +73,15 @@ def test_request_save_exemple_several_time(client, setup):
         result = json.loads(response.data)
         assert 'water' in result, f'adding water level {i}'
         assert 70 + i*10 == result['water'], f'adding water level {i}'
+ 
+def test_read_water_user(setup_user):
+    water = Water(user_id = setup_user)
+    assert 0 == water.quantity_drunk_l
         
 def test_save_water_user(setup_user):
-    water = {"water": 0}
-    result = save_water_by_user(water, 23)
-    assert 'water' in result
-    assert 0 == result['water']
+    water = Water(user_id =23)
+    result = water.save_water()
+    assert 0 == water.quantity_drunk_l
 
-def test_read_water_user(setup_user):
-    result = read_water_by_user(setup_user)
-    assert 0 == result['water']
+
     
